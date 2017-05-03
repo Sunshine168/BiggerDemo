@@ -62,36 +62,25 @@
     </div>
 </section>
 <div class="aui-margin-b-15">
-    <ul class="aui-list aui-media-list activity_list">
+    <ul class="aui-list aui-media-list activity_list" id="hotActivity">
         <li class="aui-list-header">
             热门活动
         </li>
-        <li class="aui-list-item aui-list-item-arrow">
+        <li v-for="activity in activityList" class="aui-list-item aui-list-item-arrow">
             <div class="aui-media-list-item-inner">
                 <div class="aui-list-item-inner">
                     <div class="aui-list-item-text">
-                        <div class="aui-list-item-title"><h3>标题三 H3</h3></div>
-                        <div class="aui-list-item-right">08:00</div>
+                        <div class="aui-list-item-title"><h3>{{activity['activity_name']}}</h3></div>
+                        <div class="aui-list-item-right">{{activity['address']}}</div>
                     </div>
                     <div class="aui-list-item-text aui-ellipsis-2">
-                        这里是内容区域，新版中的列表布局可以很轻松的帮助开发者完成常见列表样式。
+                        {{activity['content'].replace(/<[^>]+>/g, "")}}
                     </div>
-                     <div class="aui-info-item">2015-07-14 10:31</div>
+                     <div class="aui-info-item">{{activity['enroll_cnt']/activity['maximum']}}</div>
                 </div>
             </div>
-        </li>  <li class="aui-list-item aui-list-item-arrow">
-            <div class="aui-media-list-item-inner">
-                <div class="aui-list-item-inner">
-                    <div class="aui-list-item-text">
-                        <div class="aui-list-item-title"><h3>标题三 H3</h3></div>
-                        <div class="aui-list-item-right">08:00</div>
-                    </div>
-                    <div class="aui-list-item-text aui-ellipsis-2">
-                        这里是内容区域，新版中的列表布局可以很轻松的帮助开发者完成常见列表样式。
-                    </div>
-                </div>
-            </div>
-        </li>
+        </li>  
+        </ul>
  </div>
  <div class="aui-margin-b-15">
     <ul class="aui-list aui-media-list activity_list">
@@ -106,7 +95,7 @@
                         <div class="aui-list-item-right">08:00</div>
                     </div>
                     <div class="aui-list-item-text aui-ellipsis-2">
-                        这里是内容区域，新版中的列表布局可以很轻松的帮助开发者完成常见列表样式。
+
                     </div>
                      <div class="aui-info-item">2015-07-14 10:31</div>
                 </div>
@@ -124,45 +113,56 @@
                 </div>
             </div>
         </li>
+    </ul>
  </div>
 </div>
 </body>
 <script src="../script/api.js"></script>
 <script src="https://cdn.bootcss.com/vue/2.3.2/vue.js"></script>
 <script>
+const domain = "http://www.biggerxiaoyuan.cn/xiaoyuan/school-plus/";
+//返回当前通过vue绑定的对象集合
+function initVueObjects(){
+  let Objects={};
+  let hotActivitys = new Vue({
+    el:"#hotActivity",
+    data:{
+        activityList :[],
+    },
+
+  }) 
+}
 /*
  从hotActivity中取出活动列表
  单个活动属性
-['content']    ——活动内容
+ ['activity_name']———(活动名字)
+['content']    ——活动内容(需要处理掉html标签)
 ['enroll_cnt'] ———报名人数
 ['maximum']    ———活动总人数
-
+['address']    ———活动地点
 */
-function getHostActivity() {
-  $.ajax({
-    url: "./include/activity/DataQuery2.php",
-    type: "get",
-    data: {
-      "act": "getHotActivity",
-    },
-    success: function(data) {
-      var jsondata = $.parseJSON(data.slice(data.indexOf('{')));
-      var activity = jsondata['hotActivity'];
-      // console.log(activity);
-      console.log();
-      for (var i = 0; i < activity.length; i++) {
-        var introduce = activity[i]['content'].replace(/<[^>]+>/g, "");
-        var activity_number = "<span class='weui_cell_ft activity_enroll_num'>报名情况:" + activity[i]['enroll_cnt'] + "/" + activity[i]['maximum'] + "</span>"
-        var activity_address = "<span class='weui_cell_ft activity_location'>活动地点:" + activity[i]['address'] + "</span>"
-        var a = "<a href='./checkActivityInfo.php?activity=" + activity[i]['activity_id'] + "' class='weui_media_box weui_media_appmsg'data-type='" + activity[i]['activity_type'] + "'>" + "<div class='weui_media_bd'><h4 class='weui_media_title activity_title'>" + activity[i]['activity_name'] + "</h4><p class='weui_media_desc activity_content'>" + introduce + "</p>" + activity_number + "<br/>" + activity_address + "</div></a>"
-        $('#hotActivity_lists').find("div[class='weui_panel_bd']").append(a);
-      }
-    },
-    error: function(data) {}
-  });
-}
 apiready= ()=>{
-alert("hello")
+  loadHotActivity()
+  initVueObjects()
 }
+function loadHotActivity(){
+    api.ajax({
+    url: domain+"include/activity/DataQuery2.php?act=getHotActivity",
+    method: 'get',
+    body: {
+      "act": "getHotActivity",
+    }
+}, function(ret, err) {
+    if (ret) {
+         api.alert({ msg: JSON.stringify(ret) });
+    } else {
+        api.alert({ msg: JSON.stringify(err) });
+    }
+});
+}
+(function(){
+ initVueObjects()
+ loadHotActivity();
+})()
 </script>
 </html>
